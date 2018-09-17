@@ -3,6 +3,7 @@ GEM
   specs:
     addressable (2.5.2)
       public_suffix (>= 2.0.2, < 4.0)
+    coderay (1.1.2)
     declarative (0.0.10)
     declarative-option (0.1.0)
     faraday (0.15.2)
@@ -25,12 +26,19 @@ GEM
     httpclient (2.8.3)
     jwt (2.1.0)
     memoist (0.16.0)
+    method_source (0.9.0)
     mime-types (3.2.2)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2018.0812)
+    mini_portile2 (2.3.0)
     multi_json (1.13.1)
     multipart-post (2.0.0)
+    nokogiri (1.8.4)
+      mini_portile2 (~> 2.3.0)
     os (1.0.0)
+    pry (0.11.3)
+      coderay (~> 1.1.0)
+      method_source (~> 0.9.0)
     public_suffix (3.0.3)
     rake (12.3.1)
     representable (3.0.4)
@@ -52,6 +60,8 @@ DEPENDENCIES
   faraday
   google-api-client
   googleauth (~> 0.6.6)
+  nokogiri
+  pry
   rake (~> 12.3)
 
 RUBY VERSION
