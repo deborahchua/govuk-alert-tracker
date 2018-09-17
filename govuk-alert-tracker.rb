@@ -2,7 +2,7 @@ require 'nokogiri'
 require 'faraday'
 require 'pry'
 require 'date'
-require 'csv'
+require './spreadsheet_poster.rb'
 
 NUMBERS_OF_DAYS_IN_A_MONTH = {
   "01" => "31",
@@ -19,56 +19,54 @@ NUMBERS_OF_DAYS_IN_A_MONTH = {
   "12" => "31",
 }
 
-
 def run_report(months)
   script_start_time = Time.now
   dates = months_of_the_past(months, script_start_time.strftime("%m-%Y"))
-  file_name = generate_file_name("yearly", dates)
-  create_csv(file_name)
   hosts_list.each do |host|
     counter_message(host)
   end
-  monthly_reports = dates.each { |d| alert_report(d, file_name) }
+  @spreadsheet_poster = SpreadsheetPoster.new
+  @values = []
+  monthly_reports = dates.each { |date| alert_report(date) }
   script_duration = Time.now - script_start_time
   p "script ran in #{Time.at(script_duration).utc.strftime("%H:%M:%S")}"
 end
 
-def alert_report(date, file_name) #mm-yyyy
+def alert_report(date) #mm-yyyy
   script_start_time = Time.now
   start_date = epoch_date("01-#{date}")
   end_date = end_date(date)
   list = {}
   hosts_list.each do |host|
     p "#{date} - #{host}"
-    extract_alerts(host, start_date, end_date, file_name)
+    extract_alerts(host, start_date, end_date)
   end
+  @spreadsheet_poster.append_values(@values) #this publishes the remaining alerts
   script_duration = Time.now - script_start_time
   p "script ran in #{Time.at(script_duration).utc.strftime("%H:%M:%S")} for #{date}"
 end
 
-def create_csv(file_name)
-  CSV.open(file_name, "wb") do |csv|
-    csv << ["host", "date", "alert"]
+
+def extract_alerts(host, start_date, end_date)
+  alerts = alerts_per_month(host, start_date, end_date)
+  alerts.each do |alert|
+    parsed_host = strip_number_off_host_name(host)
+    parsed_alert = strip_date_and_host(alert)
+    post_to_spreadsheet(parsed_host, alert, parsed_alert)
   end
 end
 
-def generate_file_name(time_period, dates)
-  "#{time_period}-alerts-from-#{dates[-1]}-to-#{dates[0]}"
-end
-
-def extract_alerts(host, start_date, end_date, file_name)
-  alerts = alerts_per_month(host, start_date, end_date)
-  alerts.each do |alert|
-    parsed_alert = strip_date_and_host(alert)
-    parsed_host = strip_number_off_host_name(host)
-    CSV.open(file_name, "a+") do |csv|
-      csv << [parsed_host, alert[1..10], parsed_alert]
-    end
+def post_to_spreadsheet(parsed_host, alert, parsed_alert)
+  if @values.count < 100 #this is to make a batch request to the Google API to avoid rate limiting errors
+    @values << [ parsed_host, alert[1..10], parsed_alert, 1, 1 ]
+  else
+    @spreadsheet_poster.append_values(@values)
+    @values = []
   end
 end
 
 def strip_date_and_host(alert)
-  alert.slice(/;.*/)[1..-1]
+  alert.slice(/;.*?(;)/)[1..-2]
 end
 
 def strip_number_off_host_name(host)
