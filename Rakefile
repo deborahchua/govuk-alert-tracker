@@ -1,4 +1,4 @@
-require './govuk-alert-tracker.rb'
+require_relative 'lib/govuk_alert_tracker'
 
 task default: %w[run_monthly_report]
 

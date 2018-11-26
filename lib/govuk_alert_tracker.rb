@@ -1,8 +1,9 @@
-require 'nokogiri'
-require 'faraday'
 require 'date'
-require './spreadsheet_poster.rb'
+require 'faraday'
+require 'nokogiri'
 require 'pry'
+
+require_relative 'spreadsheet_poster'
 
 class GovukAlertTracker
   NUMBERS_OF_DAYS_IN_A_MONTH = {
@@ -21,7 +22,7 @@ class GovukAlertTracker
   }
 
   def run_report(months)
-    script_start_time = Time.new(2017,11,1)
+    script_start_time = Time.now
     dates = months_of_the_past(months, script_start_time.strftime("%m-%Y"))
     p dates
     @values = []
