@@ -24,9 +24,6 @@ class GovukAlertTracker
     script_start_time = Time.new(2017,11,1)
     dates = months_of_the_past(months, script_start_time.strftime("%m-%Y"))
     p dates
-    hosts_list.each do |host|
-      counter_message(host)
-    end
     @spreadsheet_poster = SpreadsheetPoster.new
     @values = []
     monthly_reports = dates.each { |date| alert_report(date) }
@@ -75,10 +72,6 @@ private
 
   def strip_number_off_host_name(host)
     host.sub(/-\d/, '')
-  end
-
-  def counter_message(host)
-    "#{hosts_list.index(host) + 1 }/#{hosts_list.count} - #{host}"
   end
 
   def epoch_date(date)
