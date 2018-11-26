@@ -1,3 +1,4 @@
+require 'active_support/core_ext/time'
 require 'date'
 require 'faraday'
 require 'nokogiri'
@@ -6,21 +7,6 @@ require 'pry'
 require_relative 'spreadsheet_poster'
 
 class GovukAlertTracker
-  NUMBERS_OF_DAYS_IN_A_MONTH = {
-    "01" => "31",
-    "02" => "28",
-    "03" => "31",
-    "04" => "30",
-    "05" => "31",
-    "06" => "30",
-    "07" => "31",
-    "08" => "31",
-    "09" => "30",
-    "10" => "31",
-    "11" => "30",
-    "12" => "31",
-  }
-
   def run_report(months)
     script_start_time = Time.now
     dates = months_of_the_past(months, script_start_time.strftime("%m-%Y"))
@@ -79,8 +65,9 @@ private
   end
 
   def end_date(date)
-    last_day_of_the_month = NUMBERS_OF_DAYS_IN_A_MONTH[date[0..1]] + "-"
-    epoch_date(last_day_of_the_month + date)
+    month = date[0..1].to_i
+    year = date[3..-1].to_i
+    epoch_date("#{Time.days_in_month(month, year)}-#{date}")
   end
 
   def build_url(host, start_date, end_date)
