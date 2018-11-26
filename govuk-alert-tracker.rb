@@ -24,10 +24,9 @@ class GovukAlertTracker
     script_start_time = Time.new(2017,11,1)
     dates = months_of_the_past(months, script_start_time.strftime("%m-%Y"))
     p dates
-    @spreadsheet_poster = SpreadsheetPoster.new
     @values = []
     monthly_reports = dates.each { |date| alert_report(date) }
-    @spreadsheet_poster.append_values(@values) #this publishes the last batch of alerts that doesn't usually make it to 100
+    spreadsheet_poster.append_values(@values) #this publishes the last batch of alerts that doesn't usually make it to 100
     script_duration = Time.now - script_start_time
     p "script ran in #{Time.at(script_duration).utc.strftime("%H:%M:%S")}"
   end
@@ -61,7 +60,7 @@ private
     if @values.count < 100 #this is to make a batch request to the Google API to avoid rate limiting errors
       @values << [ parsed_host, alert[1..10], parsed_alert, 1, 1, parsed_alert ]
     else
-      @spreadsheet_poster.append_values(@values)
+      spreadsheet_poster.append_values(@values)
       @values = []
     end
   end
@@ -129,5 +128,9 @@ private
       number_of_months -= 1
     end
     dates
+  end
+
+  def spreadsheet_poster
+    @spreadsheet_poster ||= SpreadsheetPoster.new
   end
 end
