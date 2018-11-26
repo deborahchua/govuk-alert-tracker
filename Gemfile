@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-ruby '2.5.1'
+ruby File.read(".ruby-version").strip
 
 gem 'rake', '~> 12.3'
 gem 'googleauth', '~> 0.6.6'
