@@ -1,9 +1,8 @@
 require 'active_support/core_ext/time'
 require 'date'
-require 'faraday'
-require 'nokogiri'
 require 'pry'
 
+require_relative 'icinga'
 require_relative 'spreadsheet_poster'
 
 class GovukAlertTracker
@@ -33,9 +32,8 @@ private
     p "script ran in #{Time.at(script_duration).utc.strftime("%H:%M:%S")} for #{date}"
   end
 
-
   def extract_alerts(host, start_date, end_date)
-    alerts = alerts_per_month(host, start_date, end_date)
+    alerts = icinga.alerts(host, start_date, end_date)
     alerts.each do |alert|
       parsed_host = strip_number_off_host_name(host)
       parsed_alert = strip_date_and_host(alert)
@@ -70,38 +68,12 @@ private
     epoch_date("#{Time.days_in_month(month, year)}-#{date}")
   end
 
-  def build_url(host, start_date, end_date)
-    "https://alert.publishing.service.gov.uk/cgi-bin/icinga/history.cgi?ts_start=#{start_date}&ts_end=#{end_date}&host=#{host}.publishing.service.gov.uk&statetype=0&type=16&nosystem=on&limit=1000&start=1"
-  end
-
   def hosts_list #this list has to be updated manually - it's hard to get it from Icinga as there is no specific url for it.
     array = []
     File.readlines("./list_of_hosts.txt"). each do |line|
       array << line.strip
     end
     array
-  end
-
-  def alerts_per_month(host, start_date, end_date)
-    url = build_url(host, start_date, end_date)
-    css = get_alerts(url)
-    alerts = extract_from_css(css)
-    alerts.compact
-  end
-
-  def get_alerts(url)
-    page = Faraday.get(url).body
-    html_doc = Nokogiri::HTML(page)
-    html_doc.css("div[class='logEntries']")
-  end
-
-  def extract_from_css(css)
-    result = []
-    array = css.to_s.split(/<br clear="all">/)
-    array.map do |line|
-      result << line.slice!(/\[.*/) unless line.include?("SOFT")
-    end
-    result
   end
 
   def months_of_the_past(number_of_months, end_date)
@@ -116,6 +88,10 @@ private
       number_of_months -= 1
     end
     dates
+  end
+
+  def icinga
+    @icinga ||= Icinga.new
   end
 
   def spreadsheet_poster
