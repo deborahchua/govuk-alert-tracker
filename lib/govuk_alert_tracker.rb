@@ -10,9 +10,8 @@ class GovukAlertTracker
     script_start_time = Time.now
     dates = months_of_the_past(months, script_start_time.strftime("%m-%Y"))
     p dates
-    @values = []
     monthly_reports = dates.each { |date| alert_report(date) }
-    spreadsheet_poster.append_values(@values) #this publishes the last batch of alerts that doesn't usually make it to 100
+    spreadsheet_poster.commit
     script_duration = Time.now - script_start_time
     p "script ran in #{Time.at(script_duration).utc.strftime("%H:%M:%S")}"
   end
@@ -23,7 +22,6 @@ private
     script_start_time = Time.now
     start_date = epoch_date("01-#{date}")
     end_date = end_date(date)
-    list = {}
     hosts_list.each do |host|
       p "#{date} - #{host}"
       extract_alerts(host, start_date, end_date)
@@ -37,16 +35,9 @@ private
     alerts.each do |alert|
       parsed_host = strip_number_off_host_name(host)
       parsed_alert = strip_date_and_host(alert)
-      post_to_spreadsheet(parsed_host, alert, parsed_alert)
-    end
-  end
-
-  def post_to_spreadsheet(parsed_host, alert, parsed_alert)
-    if @values.count < 100 #this is to make a batch request to the Google API to avoid rate limiting errors
-      @values << [ parsed_host, alert[1..10], parsed_alert, 1, 1, parsed_alert ]
-    else
-      spreadsheet_poster.append_values(@values)
-      @values = []
+      spreadsheet_poster.append(row: [
+        parsed_host, alert[1..10], parsed_alert, 1, 1, parsed_alert
+      ])
     end
   end
 
@@ -69,11 +60,9 @@ private
   end
 
   def hosts_list #this list has to be updated manually - it's hard to get it from Icinga as there is no specific url for it.
-    array = []
-    File.readlines("./list_of_hosts.txt"). each do |line|
-      array << line.strip
+    File.readlines("./list_of_hosts.txt").map do |line|
+      line.strip
     end
-    array
   end
 
   def months_of_the_past(number_of_months, end_date)

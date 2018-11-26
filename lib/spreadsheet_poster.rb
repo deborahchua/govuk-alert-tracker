@@ -10,11 +10,25 @@ class SpreadsheetPoster
     )
     @spreadsheet_id = "1lSs5Hbyiat3K8vLXTcttsnBWx9XBO5IC4q5kPQwz46k"
     @range = "Alerts per app over time!A2"
+
+    @pending_rows = []
   end
 
-  def append_values(array)
+  def append(row:)
+    @pending_rows << row
+    commit if @pending_rows.count >= 100
+  end
+
+  def commit
+    save(@pending_rows)
+    @pending_rows = []
+  end
+
+private
+
+  def save(array)
     value_range = Google::Apis::SheetsV4::ValueRange.new(values: array)
-    response = @sheets.append_spreadsheet_value(@spreadsheet_id, @range, value_range, value_input_option: "RAW")
+    @sheets.append_spreadsheet_value(@spreadsheet_id, @range, value_range, value_input_option: "RAW")
   end
 end
 
