@@ -60,9 +60,7 @@ private
   end
 
   def hosts_list #this list has to be updated manually - it's hard to get it from Icinga as there is no specific url for it.
-    File.readlines("./list_of_hosts.txt").map do |line|
-      line.strip
-    end
+    File.readlines("./list_of_hosts.txt").map(&:strip)
   end
 
   def months_of_the_past(number_of_months, end_date)

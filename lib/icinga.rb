@@ -5,8 +5,7 @@ class Icinga
   def alerts(host, start_date, end_date)
     url = build_url(host, start_date, end_date)
     css = get_log_entries(url)
-    alerts = extract_from_css(css)
-    alerts.compact
+    extract_from_css(css)
   end
 
 private
@@ -24,12 +23,11 @@ private
   end
 
   def extract_from_css(css)
-    result = []
-    array = css.to_s.split(/<br clear="all">/)
-    array.map do |line|
-      result << line.slice!(/\[.*/) unless line.include?("SOFT")
+    lines = css.to_s.split(/<br clear="all">/)
+    results = lines.map do |line|
+      line.slice!(/\[.*/) unless line.include?("SOFT")
     end
-    result
+    results.compact
   end
 
   def get_log_entries(url)
