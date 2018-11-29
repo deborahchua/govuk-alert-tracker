@@ -8,45 +8,47 @@ require_relative 'spreadsheet_poster'
 class GovukAlertTracker
   def run_report(months)
     script_start_time = Time.now
+
     dates = months_of_the_past(months, script_start_time.strftime("%m-%Y"))
-    p dates
-    monthly_reports = dates.each { |date| alert_report(date) }
+    puts "Dates: #{dates}"
+
+    dates.each { |date| run_month_report(date) }
     spreadsheet_poster.commit
+
     script_duration = Time.now - script_start_time
-    p "script ran in #{Time.at(script_duration).utc.strftime("%H:%M:%S")}"
+    puts "Script ran in #{Time.at(script_duration).utc.strftime("%H:%M:%S")}"
   end
 
 private
 
-  def alert_report(date) #mm-yyyy
-    script_start_time = Time.now
+  def run_month_report(date) # mm-yyyy
     start_date = epoch_date("01-#{date}")
     end_date = end_date(date)
-    hosts_list.each do |host|
-      p "#{date} - #{host}"
-      extract_alerts(host, start_date, end_date)
-    end
-    script_duration = Time.now - script_start_time
-    p "script ran in #{Time.at(script_duration).utc.strftime("%H:%M:%S")} for #{date}"
-  end
 
-  def extract_alerts(host, start_date, end_date)
-    alerts = icinga.alerts(host, start_date, end_date)
-    alerts.each do |alert|
-      parsed_host = strip_number_off_host_name(host)
-      parsed_alert = strip_date_and_host(alert)
+    all_alerts = hosts_list.flat_map do |host|
+      puts "#{date} - #{host}"
+      alerts_to_save(host, start_date, end_date)
+    end
+
+    alerts = grouped_alerts(all_alerts)
+    puts "#{alerts.count} alerts!"
+
+    alerts.each do |alert, count|
       spreadsheet_poster.append(row: [
-        parsed_host, alert[1..10], parsed_alert, 1, 1, parsed_alert
+        alert.date, alert.machine_class, alert.message, count
       ])
     end
   end
 
-  def strip_date_and_host(alert)
-    alert.slice(/;.*?(;)/)[1..-2]
+  def alerts_to_save(host, start_date, end_date)
+    icinga.alerts(host, start_date, end_date).reject do |alert|
+      alert.message == "gor running"
+    end
   end
 
-  def strip_number_off_host_name(host)
-    host.sub(/-\d/, '')
+  def grouped_alerts(alerts)
+    sorted_alerts = alerts.sort_by { |alert| [alert.date, alert.machine_class] }
+    sorted_alerts.each_with_object(Hash.new(0)) { |alert, hash| hash[alert] += 1 }
   end
 
   def epoch_date(date)
@@ -59,7 +61,8 @@ private
     epoch_date("#{Time.days_in_month(month, year)}-#{date}")
   end
 
-  def hosts_list #this list has to be updated manually - it's hard to get it from Icinga as there is no specific url for it.
+  def hosts_list
+    # this list has to be updated manually - it's hard to get it from Icinga as there is no specific url for it
     File.readlines("./list_of_hosts.txt").map(&:strip)
   end
 
