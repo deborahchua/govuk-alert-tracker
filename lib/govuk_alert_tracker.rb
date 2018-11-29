@@ -31,13 +31,18 @@ private
   end
 
   def save_alerts(host, start_date, end_date)
-    alerts = icinga.alerts(host, start_date, end_date)
-    alerts.each do |alert|
+    alerts_to_save(host, start_date, end_date).each do |alert|
       parsed_host = alert.host
       parsed_alert = alert.message
       spreadsheet_poster.append(row: [
         parsed_host, alert.date, parsed_alert, 1, 1, parsed_alert
       ])
+    end
+  end
+
+  def alerts_to_save(host, start_date, end_date)
+    icinga.alerts(host, start_date, end_date).reject do |alert|
+      alert.message == "gor running"
     end
   end
 
