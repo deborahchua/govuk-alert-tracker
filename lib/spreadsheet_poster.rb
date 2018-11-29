@@ -20,7 +20,7 @@ class SpreadsheetPoster
   end
 
   def commit
-    puts "Comitting to spreadsheet..."
+    puts "Comitting #{@pending_rows.count} to spreadsheet..."
     save(@pending_rows)
     @pending_rows = []
   end

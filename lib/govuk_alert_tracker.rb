@@ -24,15 +24,19 @@ private
   def run_month_report(date) # mm-yyyy
     start_date = epoch_date("01-#{date}")
     end_date = end_date(date)
-    hosts_list.each do |host|
-      puts "#{date} - #{host}"
-      save_alerts(host, start_date, end_date)
-    end
-  end
 
-  def save_alerts(host, start_date, end_date)
-    alerts_to_save(host, start_date, end_date).each do |alert|
-      spreadsheet_poster.append(row: [alert.date, alert.host, alert.message])
+    all_alerts = hosts_list.flat_map do |host|
+      puts "#{date} - #{host}"
+      alerts_to_save(host, start_date, end_date)
+    end
+
+    alerts = grouped_alerts(all_alerts)
+    puts "#{alerts.count} alerts!"
+
+    alerts.each do |alert, count|
+      spreadsheet_poster.append(row: [
+        alert.date, alert.machine_class, alert.message, count
+      ])
     end
   end
 
@@ -40,6 +44,11 @@ private
     icinga.alerts(host, start_date, end_date).reject do |alert|
       alert.message == "gor running"
     end
+  end
+
+  def grouped_alerts(alerts)
+    sorted_alerts = alerts.sort_by { |alert| [alert.date, alert.machine_class] }
+    sorted_alerts.each_with_object(Hash.new(0)) { |alert, hash| hash[alert] += 1 }
   end
 
   def epoch_date(date)

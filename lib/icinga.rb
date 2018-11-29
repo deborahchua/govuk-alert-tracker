@@ -1,7 +1,15 @@
 require 'faraday'
 require 'nokogiri'
 
-Alert = Struct.new(:host, :date, :message)
+Alert = Struct.new(:host, :date, :message) do
+  def machine_class
+    host.split("-")[0..-2].join("-")
+  end
+
+  def ==(other)
+    self.machine_class == other.machine_class && self.date == other.date && self.message == other.message
+  end
+end
 
 class Icinga
   def alerts(host, start_date, end_date)
@@ -17,7 +25,7 @@ private
   def parse_alert(host, text)
     date = text[1..10]
     message = text.slice(/;.*?(;)/)[1..-2]
-    Alert.new(host, date, message)
+    Alert.new(host.strip, date.strip, message.strip)
   end
 
   def build_url(host, start_date, end_date)
