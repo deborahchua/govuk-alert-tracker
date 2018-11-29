@@ -8,29 +8,29 @@ require_relative 'spreadsheet_poster'
 class GovukAlertTracker
   def run_report(months)
     script_start_time = Time.now
+
     dates = months_of_the_past(months, script_start_time.strftime("%m-%Y"))
-    p dates
-    monthly_reports = dates.each { |date| alert_report(date) }
+    puts "Dates: #{dates}"
+
+    dates.each { |date| run_month_report(date) }
     spreadsheet_poster.commit
+
     script_duration = Time.now - script_start_time
-    p "script ran in #{Time.at(script_duration).utc.strftime("%H:%M:%S")}"
+    puts "Script ran in #{Time.at(script_duration).utc.strftime("%H:%M:%S")}"
   end
 
 private
 
-  def alert_report(date) #mm-yyyy
-    script_start_time = Time.now
+  def run_month_report(date) # mm-yyyy
     start_date = epoch_date("01-#{date}")
     end_date = end_date(date)
     hosts_list.each do |host|
-      p "#{date} - #{host}"
-      extract_alerts(host, start_date, end_date)
+      puts "#{date} - #{host}"
+      save_alerts(host, start_date, end_date)
     end
-    script_duration = Time.now - script_start_time
-    p "script ran in #{Time.at(script_duration).utc.strftime("%H:%M:%S")} for #{date}"
   end
 
-  def extract_alerts(host, start_date, end_date)
+  def save_alerts(host, start_date, end_date)
     alerts = icinga.alerts(host, start_date, end_date)
     alerts.each do |alert|
       parsed_host = alert.host
@@ -51,7 +51,8 @@ private
     epoch_date("#{Time.days_in_month(month, year)}-#{date}")
   end
 
-  def hosts_list #this list has to be updated manually - it's hard to get it from Icinga as there is no specific url for it.
+  def hosts_list
+    # this list has to be updated manually - it's hard to get it from Icinga as there is no specific url for it
     File.readlines("./list_of_hosts.txt").map(&:strip)
   end
 
