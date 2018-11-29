@@ -6,8 +6,12 @@ Alert = Struct.new(:host, :date, :message) do
     host.split("-")[0..-2].join("-")
   end
 
-  def ==(other)
-    self.machine_class == other.machine_class && self.date == other.date && self.message == other.message
+  def eql?(other)
+    machine_class == other.machine_class && date == other.date && message == other.message
+  end
+
+  def hash
+    [machine_class, date, message].hash
   end
 end
 
