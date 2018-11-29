@@ -25,9 +25,11 @@ private
     "?ts_start=#{start_date}" \
     "&ts_end=#{end_date}" \
     "&host=#{host}.publishing.service.gov.uk" \
-    "&statetype=0" \
+    "&statetype=2" \
     "&type=16" \
     "&nosystem=on" \
+    "&noflapping=on" \
+    "&nodowntime=on" \
     "&limit=1000" \
     "&start=1"
   end
