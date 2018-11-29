@@ -33,20 +33,12 @@ private
   def extract_alerts(host, start_date, end_date)
     alerts = icinga.alerts(host, start_date, end_date)
     alerts.each do |alert|
-      parsed_host = strip_number_off_host_name(host)
-      parsed_alert = strip_date_and_host(alert)
+      parsed_host = alert.host
+      parsed_alert = alert.message
       spreadsheet_poster.append(row: [
-        parsed_host, alert[1..10], parsed_alert, 1, 1, parsed_alert
+        parsed_host, alert.date, parsed_alert, 1, 1, parsed_alert
       ])
     end
-  end
-
-  def strip_date_and_host(alert)
-    alert.slice(/;.*?(;)/)[1..-2]
-  end
-
-  def strip_number_off_host_name(host)
-    host.sub(/-\d/, '')
   end
 
   def epoch_date(date)

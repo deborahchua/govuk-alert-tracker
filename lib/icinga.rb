@@ -1,14 +1,24 @@
 require 'faraday'
 require 'nokogiri'
 
+Alert = Struct.new(:host, :date, :message)
+
 class Icinga
   def alerts(host, start_date, end_date)
     url = build_url(host, start_date, end_date)
     css = get_log_entries(url)
-    extract_from_css(css)
+    extract_from_css(css).map do |text|
+      parse_alert(host, text)
+    end
   end
 
 private
+
+  def parse_alert(host, text)
+    date = text[1..10]
+    message = text.slice(/;.*?(;)/)[1..-2]
+    Alert.new(host, date, message)
+  end
 
   def build_url(host, start_date, end_date)
     "https://alert.publishing.service.gov.uk/cgi-bin/icinga/history.cgi" \
