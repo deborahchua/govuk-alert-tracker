@@ -31,6 +31,7 @@ private
   end
 
   def get_log_entries(url)
+    puts "Fetching:", url
     page = Faraday.get(url).body
     html_doc = Nokogiri::HTML(page)
     html_doc.css("div[class='logEntries']")

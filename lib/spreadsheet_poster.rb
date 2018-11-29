@@ -20,6 +20,7 @@ class SpreadsheetPoster
   end
 
   def commit
+    puts "Comitting to spreadsheet..."
     save(@pending_rows)
     @pending_rows = []
   end
@@ -29,17 +30,5 @@ private
   def save(array)
     value_range = Google::Apis::SheetsV4::ValueRange.new(values: array)
     @sheets.append_spreadsheet_value(@spreadsheet_id, @range, value_range, value_input_option: "RAW")
-  end
-end
-
-class AccessToken
-  attr_reader :token
-
-  def initialize(token)
-    @token = token
-  end
-
-  def apply!(headers)
-    headers['Authorization'] = "Bearer #{@token}"
   end
 end
