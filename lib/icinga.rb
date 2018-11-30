@@ -42,7 +42,7 @@ private
     "&nosystem=on" \
     "&noflapping=on" \
     "&nodowntime=on" \
-    "&limit=1000" \
+    "&limit=0" \
     "&start=1"
   end
 
