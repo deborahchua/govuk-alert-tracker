@@ -13,7 +13,6 @@ class GovukAlertTracker
     puts "Dates: #{dates}"
 
     dates.each { |date| run_month_report(date) }
-    spreadsheet_poster.commit
 
     script_duration = Time.now - script_start_time
     puts "Script ran in #{Time.at(script_duration).utc.strftime("%H:%M:%S")}"
@@ -38,6 +37,8 @@ private
         alert.date, alert.machine_class, alert.message, count
       ])
     end
+
+    spreadsheet_poster.commit
   end
 
   def alerts_to_save(host, start_date, end_date)
