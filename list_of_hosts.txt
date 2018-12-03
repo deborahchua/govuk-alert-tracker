@@ -108,11 +108,6 @@ search-3.api
 transition-postgresql-master-1.backend
 transition-postgresql-slave-1.backend
 transition-postgresql-slave-2.backend
-vpn_gateway_api_dr
-vpn_gateway_backend_dr
-vpn_gateway_licensify
-vpn_gateway_redirector_dr
-vpn_gateway_router_dr
 warehouse-postgresql-1.backend
 whitehall-backend-1.backend
 whitehall-backend-2.backend
