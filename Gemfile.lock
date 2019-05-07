@@ -22,7 +22,7 @@ GEM
       representable (~> 3.0)
       retriable (>= 2.0, < 4.0)
       signet (~> 0.10)
-    googleauth (0.7.1)
+    googleauth (0.8.1)
       faraday (~> 0.12)
       jwt (>= 1.4, < 3.0)
       memoist (~> 0.16)
@@ -72,7 +72,7 @@ DEPENDENCIES
   activesupport (~> 5.2)
   faraday
   google-api-client
-  googleauth (~> 0.7.1)
+  googleauth (~> 0.8.1)
   nokogiri
   pry
   rake (~> 12.3)
