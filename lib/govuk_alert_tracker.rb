@@ -24,9 +24,14 @@ private
     start_date = epoch_date("01-#{date}")
     end_date = end_date(date)
 
+    icinga.hosts
+
     all_alerts = hosts_list.flat_map do |host|
       puts "#{date} - #{host}"
-      alerts_to_save(host, start_date, end_date)
+      host_detail = host.gsub("\"","").split(",")
+      name = host_detail[0]
+      host = host_detail[1]
+      alerts_to_save(name, host, start_date, end_date)
     end
 
     alerts = grouped_alerts(all_alerts)
@@ -34,15 +39,15 @@ private
 
     alerts.each do |alert, count|
       spreadsheet_poster.append(row: [
-        alert.date, alert.machine_class, alert.message, count
+        alert.date, alert.name, alert.host, alert.message, count
       ])
     end
 
     spreadsheet_poster.commit
   end
 
-  def alerts_to_save(host, start_date, end_date)
-    icinga.alerts(host, start_date, end_date).reject do |alert|
+  def alerts_to_save(name, host, start_date, end_date)
+    icinga.alerts(name, host, start_date, end_date).reject do |alert|
       alert.message == "gor running"
     end
   end
@@ -64,7 +69,7 @@ private
 
   def hosts_list
     # this list has to be updated manually - it's hard to get it from Icinga as there is no specific url for it
-    File.readlines("./list_of_hosts.txt").map(&:strip)
+    File.readlines("./list_of_hosts.csv").map(&:strip)
   end
 
   def months_of_the_past(number_of_months, end_date)
